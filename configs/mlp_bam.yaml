@@ -1,0 +1,48 @@
+model:
+  name: "cifarmlp"
+  
+dataset:
+  name: "cifar10"
+  path: "data/cifar10"
+  train_args:
+    batch_size: 1024
+  test_args:
+    batch_size: 1024
+
+training:
+  warmup: false
+  epochs: 50
+  batch_size: 1024
+  
+  loss:
+    type: "cross_entropy"
+    label_smoothing: 0.0
+  
+  optimizer_groups:
+    - name: "fc1_and_fc4_params"
+      param_selector:
+        type: "name_contains_multiple"
+        patterns: ["fc1", "fc4"]
+      optimizer:
+        type: "adamw"
+        lr: 0.0001
+        weight_decay: 0
+      lr_schedule:
+        type: "linear_decay"
+        total_steps: "total_epochs"
+
+    - name: "hidden_params"
+      param_selector:
+        type: "name_contains_multiple"
+        patterns: ["fc2", "fc3"]
+      optimizer:
+        type: "bam"
+        lr: 0.05
+        momentum: 0.9
+        weight_decay: 0.01
+      lr_schedule:
+        type: "linear_decay"
+        total_steps: "total_epochs"
+
+  wandb:
+    project: "bam-mlp-sweep"
